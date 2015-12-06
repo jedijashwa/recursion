@@ -6,18 +6,31 @@ var parseJSON = function(json) {
 
 	// function for removing blank space from start and end
 	var removeBlanks = function (string) {
-		while (string.charAt(0) === (' ')|| string.charAt(0) === ('\n')|| string.charAt(0) === ('\t')|| string.charAt(0) === ('\r')){
+		// loops until first character of string is not blank space
+		while (string.charAt(0) === ' '|| string.charAt(0) === '\n'|| string.charAt(0) === '\t'|| string.charAt(0) === '\r'){
+			// removes first character of string
 			string = string.slice(1);
+		}
+		// defines lastIndex of string for easier readability
+		var lastIndex = string.length - 1;
+		// loops until last character of string is not blank space
+		while (string.charAt(lastIndex) === ' ' || string.charAt(lastIndex) === '\n' || string.charAt(lastIndex) === '\t' || string.charAt(lastIndex) === '\r'){
+			// removes last character
+			string = string.slice(0, lastIndex);
 		}
 		return string;
 	};
 
 	// function for finding the close of an array or object
 	var findClose = function (string) {
+		// looks for first character
 		var open = string.charAt(0);
+		// defines close based on first character
 		if (open == '{') close = '}';
 		else if (open == '[') close = ']';
+		// throws error if first character isn't an open
 		else throw new SyntaxError('findClose called for invalid type');
+		// throws error if proper close isn't found
 		if (string.indexOf(close) === undefined) throw new SyntaxError('findClose called for item that doesn\'t close');
 
 		// remove frist open and replace with '.' to maintain string indexes
@@ -50,9 +63,56 @@ var parseJSON = function(json) {
 			// checks to see if next item is object or array
 			if ((json.charAt(0) == ('[')) || (json.charAt(0) == ('{'))) {
 				// parses item then pushes it to output array
-				output.push(parseJSON(json.slice(0, findClose(json))));
+				output.push(parseJSON(json.slice(0, findClose(json) + 1)));
+				// removes already parsed item from json
 				json = json.slice(findClose(json)+1);
-			// checks to see if item is a string
+				// if new json string starts with comma, removes comma
+				if (json.charAt(0) === ',') json = json.slice(1);
+			} else {
+				// checks to see if this is the last item
+				if (json.indexOf(',') > 0) {
+					// sets where to stop
+					var stopIndex = json.indexOf(',');
+					// sets where new string will start
+					var nextIndex = stopIndex + 1;
+				} else {
+					// acts as above but with different values for last item
+					var stopIndex = json.length - 1;
+					var nextIndex = stopIndex;
+				}
+				// parses current item and pushes it to output array
+				output.push(parseJSON(removeBlanks(json.slice(0, stopIndex))));
+				// removes item from json
+				json = json.slice(nextIndex);
+			};
+		};
+		return output;
+
+	// handles objects
+	} else if (json.charAt(0) == '{') {
+		console.log(json);
+		// ensures object closes
+		if (json.charAt(json.length - 1) != '}') throw new SyntaxError('Object doesn\'t close');
+		// creates empty object for output and empty propName
+		var output = {};
+		var propName = '';
+		// ditches the opening of object
+		json = json.slice(1);
+		// loops until no items remain
+		while (json.charAt(0) != '}') {
+			json = removeBlanks(json);
+			// sets property name
+			propName = json.slice(1, json.indexOf(':') - 1);
+			// removes property name from json
+			json = json.slice(json.indexOf(':') + 1);
+			json = removeBlanks(json);
+			// now works exactly as array above
+			// checks to see if next item is object or array
+			if ((json.charAt(0) == ('[')) || (json.charAt(0) == ('{'))) {
+				// parses item then pushes it to output object
+				output[propName] = (parseJSON(json.slice(0, findClose(json)+1)));
+				json = json.slice(findClose(json)+1);
+				if (json.charAt(0) === ',') json = json.slice(1);
 			} else {
 				if (json.indexOf(',') >= 0) {
 					var stopIndex = json.indexOf(',');
@@ -61,23 +121,12 @@ var parseJSON = function(json) {
 					var stopIndex = json.length - 1;
 					var nextIndex = stopIndex;
 				}
-				output.push(parseJSON(json.slice(0, stopIndex)));
+				output[propName] = parseJSON(removeBlanks(json.slice(0, stopIndex)));
 				json = json.slice(nextIndex);
-			};
+			};		
 		};
+		console.log(output);
 		return output;
-	// handles objects
-	} else if (json.charAt(0) == '{') {
-		// ensures object closes
-		if (json.charAt(json.length - 1) != '}') throw new SyntaxError('Object doesn\'t close');
-		// creates empty object for output
-		var output = {};
-		// ditches the opening and closing of the object
-		json = json.slice(1);
-		// loops until no items remain
-//		while (json.charAt(0) != '}') {
-
-//		};
 
 	// handles if neither array nor object
 	// needs to be updated for escaping
