@@ -10,7 +10,7 @@ var getElementsByClassName = function(className){
 	// Finds elements in HTML node and all of its children that are elements (nodeType 1)
 	var findElementsWithClass = function (parent, className){
 		// Checks to see if parent has className at all in it's classes
-		if (parent['className'].indexOf(className) >= 0 ){
+		if (parent.classList.contains(className)) {
 			// Adds parent to elements array
 			elements.push(parent);
 		};
