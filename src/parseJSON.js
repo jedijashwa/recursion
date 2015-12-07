@@ -46,11 +46,28 @@ var parseJSON = function(json) {
 		return string.indexOf(close);
 	};
 
+	// function for removing backslashes properly from strings
+	var removeBackslash = function (string){
+		var fixed = '';	
+		while (string.indexOf('\\') >=0) {
+		    // Finds index of backslash
+		    backIndex = string.indexOf('\\')
+		    // Adds string up to index of backslash plus the following character
+		    fixed += string.slice(0, backIndex) + string.slice(backIndex+1, backIndex+2);
+		    // Removes everyhint thats been handed from string
+		    string = string.slice(backIndex+2);
+		};
+  		fixed += string;
+  		return fixed;
+	};
+
 	// ensures json isn't starting or ending with a blank space
 	json = removeBlanks(json);
 
 	// handles arrays
 	if (json.charAt(0) == '[') {
+		// removes blanks
+		json = removeBlanks(json);
 		// ensures array closes
 		if (json.charAt(json.length - 1) != ']') throw new SyntaxError('Array doesn\'t close');
 		// creates empty array for output
@@ -80,8 +97,12 @@ var parseJSON = function(json) {
 					var stopIndex = json.length - 1;
 					var nextIndex = stopIndex;
 				}
-				// parses current item and pushes it to output array
-				output.push(parseJSON(removeBlanks(json.slice(0, stopIndex))));
+				// parses current item
+				var item = parseJSON(removeBlanks(json.slice(0, stopIndex)));
+				// pushes item to output array if item isn't null
+				if (removeBlanks(json.slice(0, stopIndex)) !== ''){
+					output.push(item);
+				};
 				// removes item from json
 				json = json.slice(nextIndex);
 			};
@@ -90,7 +111,8 @@ var parseJSON = function(json) {
 
 	// handles objects
 	} else if (json.charAt(0) == '{') {
-		console.log(json);
+		// removes blanks
+		json = removeBlanks(json);
 		// ensures object closes
 		if (json.charAt(json.length - 1) != '}') throw new SyntaxError('Object doesn\'t close');
 		// creates empty object for output and empty propName
@@ -102,7 +124,9 @@ var parseJSON = function(json) {
 		while (json.charAt(0) != '}') {
 			json = removeBlanks(json);
 			// sets property name
-			propName = json.slice(1, json.indexOf(':') - 1);
+			propName = json.slice(0, json.indexOf(':'))
+			propName = removeBlanks(propName);
+			propName = propName.slice(1, propName.length - 1);
 			// removes property name from json
 			json = json.slice(json.indexOf(':') + 1);
 			json = removeBlanks(json);
@@ -121,24 +145,26 @@ var parseJSON = function(json) {
 					var stopIndex = json.length - 1;
 					var nextIndex = stopIndex;
 				}
-				output[propName] = parseJSON(removeBlanks(json.slice(0, stopIndex)));
+				var item = parseJSON(removeBlanks(json.slice(0, stopIndex)));
+				if (propName !== '') {
+					output[propName] = item;
+				};
 				json = json.slice(nextIndex);
 			};		
 		};
-		console.log(output);
 		return output;
 
 	// handles if neither array nor object
 	// needs to be updated for escaping
 	} else if ((json.charAt(0) == '\'') || (json.charAt(0) == '\"')) {
-		return json.slice(1, json.length-1);
+		return removeBackslash(json.slice(1, json.length-1));
 	} else if (json === 'true') {
 		return true;
 	} else if (json === 'false') {
 		return false;
 	} else if (json === 'undefined') {
 		return undefined;
-	} else if (json === 'null') {
+	} else if (json === 'null' || json === '') {
 		return null;
 	} else {
 		return Number(json);
