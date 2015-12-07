@@ -12,12 +12,9 @@ var stringifyJSON = function(obj) {
   	// starts JSON for array with '['
   	json += '[';
   	// add first element to json
-  	console.log(obj[0]);
   	json += stringifyJSON(obj[0]);
   	// loop for adding all remaining elements of array
   	for (var index = 1; index < obj.length; index++){
-  		console.log('17: ' + obj[index]);
-  		console.log('18: ' + stringifyJSON(obj[index]));
   		json += ',' + stringifyJSON(obj[index]);
   	}
   	json += ']';
@@ -54,6 +51,5 @@ var stringifyJSON = function(obj) {
   	// adds closing bracket for object to json
   	json += '}';
   };
-  console.log(json);
   return json;
 };
