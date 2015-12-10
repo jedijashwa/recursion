@@ -16,8 +16,9 @@ var getElementsByClassName = function(className){
 		};
 		// Loops through all children nodes that are elements
 		for (var i = 0; i < parent.childNodes.length; i++) {
-			// Runs findElementsWithClass on each child node of parent
+			// Checks to see if child node is element
 			if (parent.childNodes[i].nodeType == 1){
+				// Runs findElementsWithClass on each child node of parent
 				findElementsWithClass(parent.childNodes[i]);
 			};
 		};
